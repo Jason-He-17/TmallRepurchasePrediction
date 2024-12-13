@@ -1,0 +1,19 @@
+# Ignore data files
+data/
+
+# Ignore references
+references/
+
+# Ignore submissions
+submission/
+
+# Ignore backup files
+backup/
+
+# Ignore log files
+log/
+*.log
+
+# Ignore IDE files
+.idea/
+.vscode/
