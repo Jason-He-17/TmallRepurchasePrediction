@@ -19,7 +19,7 @@ pip install -r requirements.txt
 ## Directory structure
 To help you better understand the organization of the project, here is an overview of the project's directory structure.
 
-TmallRepurchasePrediction/
+TmallRepurchasePrediction/  
 ├── backup  
 │   └── model.ipynb.back # Before test for add/remove feature, back up for convenient roll back.  
 ├── code #The main code part  
