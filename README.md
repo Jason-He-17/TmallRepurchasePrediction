@@ -2,19 +2,19 @@
 Final project for cs182, 24 fall, ShanghaiTech
 
 ## Environment
-It is recommended using conda to create an isolated Python environment, and install the required dependencies via the 'requirements.txt' file.
+It is recommended using conda to create an isolated Python environment, and install the required dependencies via the 'requirements.txt' file.  
 
-Suggest to use python=3.9.x
-The code may not work correctly or be very slow on other version.
+Suggest to use python=3.9.x  
+The code may not work correctly or be very slow on other version.  
 
-'''bash
-1.Create and activate conda env
-conda create -n your_env_name python=3.9
-conda activate your_env_name
-2.Install the dependencies
-pip install -r requirements.txt
+'''bash  
+1.Create and activate conda env  
+conda create -n your_env_name python=3.9  
+conda activate your_env_name  
+2.Install the dependencies  
+pip install -r requirements.txt  
 
-**Note:** The environment may not work correctly for GPU on your computer. You could fix it by yourself.
+**Note:** The environment may not work correctly for GPU on your computer. You could fix it by yourself.  
 
 ## Directory structure
 To help you better understand the organization of the project, here is an overview of the project's directory structure.
