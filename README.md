@@ -21,7 +21,7 @@ To help you better understand the organization of the project, here is an overvi
 
 TmallRepurchasePrediction/  
 ├── backup  
-│   └── model.ipynb.back # Before test for add/remove feature, back up for convenient roll back.  
+│   └── model.ipynb.back # Before test for add/remove features, back up for convenient roll back.  
 ├── code #The main code part  
 │   └── model.ipynb  
 ├── data  
