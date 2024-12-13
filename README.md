@@ -8,17 +8,19 @@ Suggest to use python=3.9.x
 The code may not work correctly or be very slow on other version.  
 
 '''bash  
-1.Create and activate conda env  
+# Create and activate conda env  
 conda create -n your_env_name python=3.9  
 conda activate your_env_name  
-2.Install the dependencies  
+# Install the dependencies  
 pip install -r requirements.txt  
+'''
 
 **Note:** The environment may not work correctly for GPU on your computer. You could fix it by yourself.  
 
 ## Directory structure
 To help you better understand the organization of the project, here is an overview of the project's directory structure.
 
+'''
 TmallRepurchasePrediction/  
 ├── backup  
 │   └── model.ipynb.back # Before test for add/remove features, back up for convenient roll back.  
@@ -40,6 +42,7 @@ TmallRepurchasePrediction/
 ├── requirements.txt  
 └── submission  
     └── submission.csv # I have tested that the name of this file will not be check.  
+'''
 
 ## Data download
 You could download the datasets on https://tianchi.aliyun.com/competition/entrance/231576/information. Explanation of them is below the download link.
