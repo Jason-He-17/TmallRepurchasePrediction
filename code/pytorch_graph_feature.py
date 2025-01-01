@@ -11,44 +11,45 @@ import numpy as np
 
 def add_pytorch_graph_embedding_features(matrix, origin_data, embed_dim=16, feature_dim=16, cap_percentile=95, bins=16, epochs=100, lr=0.01):
     """
-    使用 PyTorch Geometric 生成用户和商家节点的图嵌入特征并合并到 matrix。
-    :param matrix: 训练/测试数据矩阵对象
-    :param origin_data: 原始数据对象，包含 user_log_format1
-    :param embed_dim: 嵌入向量维度（调整为与 feature_dim 相同）
-    :param feature_dim: 节点初始特征维度
-    :param cap_percentile: 分位截断值
-    :param bins: 分箱数
-    :param epochs: 训练轮数
-    :param lr: 学习率
+    Generate graph embedding features for user and merchant nodes using PyTorch Geometric and merge them into matrix.
+    
+    :param matrix: Training/testing data matrix object
+    :param origin_data: Original data object containing user_log_format1
+    :param embed_dim: Embedding vector dimension (set to match feature_dim)
+    :param feature_dim: Initial node feature dimension
+    :param cap_percentile: Percentile cap value
+    :param bins: Number of bins for binning
+    :param epochs: Number of training epochs
+    :param lr: Learning rate
     """
 
     user_log = origin_data.user_log_format1.copy()
     
-    # 1) 准备二分图节点映射
+    # 1) Prepare bipartite graph node mapping
     users = user_log['user_id'].unique()
     merchants = user_log['merchant_id'].unique()
 
     user_map = {uid: i for i, uid in enumerate(users)}
     merchant_map = {mid: i + len(users) for i, mid in enumerate(merchants)}
 
-    # 2) 构建边集
+    # 2) Build edge set
     edges_u = user_log['user_id'].map(user_map).values
     edges_m = user_log['merchant_id'].map(merchant_map).values
-    edge_index = torch.tensor(np.array([edges_u, edges_m]), dtype=torch.long)  # 优化边列表转换
+    edge_index = torch.tensor(np.array([edges_u, edges_m]), dtype=torch.long)  # Optimize edge list conversion
 
-    # 3) 构建图数据 (使用随机初始化的节点特征)
+    # 3) Build graph data (using randomly initialized node features)
     num_nodes = len(users) + len(merchants)
     x = torch.randn(num_nodes, feature_dim)
     data = Data(x=x, edge_index=edge_index)
 
-    # 4) 设置设备 (GPU 优先，如果可用)
+    # 4) Set device (prefer GPU if available)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f'Using device: {device}')
 
-    # 将数据移动到设备
+    # Move data to device
     data = data.to(device)
 
-    # 5) 定义简易的 GraphSAGE 模型
+    # 5) Define a simple GraphSAGE model
     class GraphSAGE(torch.nn.Module):
         def __init__(self, in_channels, hidden_channels, out_channels):
             super().__init__()
@@ -65,29 +66,29 @@ def add_pytorch_graph_embedding_features(matrix, origin_data, embed_dim=16, feat
     model = GraphSAGE(data.num_features, embed_dim * 2, embed_dim).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    # 6) 简单自监督训练（调整损失函数以匹配维度）
+    # 6) Simple self-supervised training (adjust loss function to match dimensions)
     model.train()
     for epoch in range(epochs):
         optimizer.zero_grad()
         out = model(data)
-        # 采用自编码器式的重构损失，仅重构 feature_dim 维度
-        # 确保 out 和 data.x 在同一设备上
+        # Use an autoencoder-style reconstruction loss, reconstructing only feature_dim dimensions
+        # Ensure out and data.x are on the same device
         loss = F.mse_loss(out[:, :feature_dim], data.x)
         loss.backward()
         optimizer.step()
         if (epoch+1) % 10 == 0:
             print(f'Epoch {epoch+1}, Loss: {loss.item()}')
 
-    # 7) 获取训练后节点嵌入
+    # 7) Get post-training node embeddings
     model.eval()
     with torch.no_grad():
         embeddings = model(data).cpu().numpy()
 
-    # 8) 划分用户与商家节点的嵌入
+    # 8) Split embeddings for user and merchant nodes
     user_embeddings = {uid: embeddings[user_map[uid]] for uid in users}
     merchant_embeddings = {mid: embeddings[merchant_map[mid]] for mid in merchants}
 
-    # 9) 转换为 DataFrame 并合并到 matrix
+    # 9) Convert to DataFrame and merge into matrix
     user_emb_df = pd.DataFrame.from_dict(user_embeddings, orient='index')
     user_emb_df.index.name = 'user_id'
     user_emb_df.reset_index(inplace=True)
@@ -101,13 +102,13 @@ def add_pytorch_graph_embedding_features(matrix, origin_data, embed_dim=16, feat
     matrix.train_test_matrix = matrix.train_test_matrix.merge(user_emb_df, on='user_id', how='left')
     matrix.train_test_matrix = matrix.train_test_matrix.merge(merchant_emb_df, on='merchant_id', how='left')
 
-    # 10) 对嵌入做分位截断和分箱
+    # 10) Apply percentile capping and binning to embeddings
     all_emb_cols = [col for col in matrix.train_test_matrix.columns if col.startswith(('u_emb_', 'm_emb_'))]
     for col in all_emb_cols:
         matrix.train_test_matrix[col] = _cap_values(matrix.train_test_matrix[col], upper_percentile=cap_percentile)
         matrix.train_test_matrix[col] = _bin_values(matrix.train_test_matrix[col], bins=bins)
 
-    # 11) 缺失值填充
+    # 11) Fill missing values
     emb_cols_to_fill = [col for col in all_emb_cols if col in matrix.train_test_matrix.columns]
     matrix.train_test_matrix[emb_cols_to_fill] = matrix.train_test_matrix[emb_cols_to_fill].fillna(0)
 

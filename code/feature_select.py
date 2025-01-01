@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.feature_selection import SelectKBest, f_classif
 
 def select_features(data, label_col='label', k=50):
-    # 只针对数值型特征做筛选，去除非数值列、标签列、origin列
+    # Only perform feature selection on numeric features; remove non-numeric columns, the label column, and the origin column
     numeric_cols = data.select_dtypes(include=['int64','float64','int32','float32','uint32','uint16']).columns.tolist()
     if label_col in numeric_cols:
         numeric_cols.remove(label_col)
